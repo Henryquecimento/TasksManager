@@ -13,9 +13,9 @@ const users = [];
 function checksExistsUserAccount(request, response, next) {
   const { username } = request.headers;
 
-  const userAlreadyExists = users.some(user => user.username === username);
+  const userExists = users.some(user => user.username === username);
 
-  if (!userAlreadyExists) return response.status(404).json({
+  if (!userExists) return response.status(404).json({
     error: 'User not found!'
   });
 
@@ -33,6 +33,10 @@ app.post('/users', (request, response) => {
     username,
     todos: []
   }
+
+  const userAlreadyExists = users.find(user => user.username === username);
+
+  if (userAlreadyExists) return response.status(400).json({ error: "User already exists!" })
 
   users.push(user);
 
@@ -106,11 +110,13 @@ app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
 
   let todosExists = user.todos.find(todo => todo.id === id);
 
+  if (!todosExists) return response.status(404).json({ error: "Todo not found!" })
+
   const todoIndex = user.todos.indexOf(todosExists);
 
   user.todos.splice(todoIndex, 1);
 
-  return response.json(user);
+  return response.status(204).json();
 });
 
 module.exports = app;
